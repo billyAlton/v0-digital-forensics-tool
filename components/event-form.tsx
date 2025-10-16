@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
+import { EventService } from "@/src/services/event.service"
 
 interface EventFormProps {
   event?: {
@@ -26,7 +27,7 @@ interface EventFormProps {
 }
 
 export function EventForm({ event }: EventFormProps) {
-  const router = useRouter()
+   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -45,17 +46,6 @@ export function EventForm({ event }: EventFormProps) {
     setIsLoading(true)
     setError(null)
 
-    const supabase = createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-      setError("You must be logged in")
-      setIsLoading(false)
-      return
-    }
-
     const eventData = {
       title: formData.title,
       description: formData.description || null,
@@ -63,25 +53,21 @@ export function EventForm({ event }: EventFormProps) {
       start_date: new Date(formData.start_date).toISOString(),
       end_date: new Date(formData.end_date).toISOString(),
       location: formData.location || null,
-      max_attendees: formData.max_attendees ? Number.parseInt(formData.max_attendees) : null,
-      created_by: user.id,
+      max_attendees: formData.max_attendees ? Number(formData.max_attendees) : null,
+      created_by: "admin", // tu pourras remplacer par ton système d’auth plus tard
     }
 
     try {
       if (event) {
-        const { error } = await supabase.from("events").update(eventData).eq("id", event.id)
-
-        if (error) throw error
+        await EventService.updateEvent(event.id, eventData)
       } else {
-        const { error } = await supabase.from("events").insert([eventData])
-
-        if (error) throw error
+        await EventService.createEvent(eventData)
       }
 
       router.push("/admin/events")
       router.refresh()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred")
+    } catch (err: any) {
+      setError(err.message || "An error occurred")
     } finally {
       setIsLoading(false)
     }

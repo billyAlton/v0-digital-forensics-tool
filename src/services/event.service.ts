@@ -4,11 +4,12 @@ import apiClient from "@/lib/apiCaller";
 export interface Event {
   _id?: string;
   title: string;
-  description: string;
-  date: string;
-  location?: string;
-  imageUrl?: string;
-  [key: string]: any; // pour d'autres champs dynamiques
+  description: string | null;
+  event_type: string;
+  start_date: string;
+  end_date: string;
+  location: string | null;
+  max_attendees: number | null;
 }
 
 export const EventService = {
@@ -18,7 +19,10 @@ export const EventService = {
       const response = await apiClient.get<Event[]>("/events");
       return response.data;
     } catch (error: any) {
-      console.error("Erreur lors du chargement des événements :", error.message);
+      console.error(
+        "Erreur lors du chargement des événements :",
+        error.message
+      );
       throw error;
     }
   },
@@ -29,7 +33,10 @@ export const EventService = {
       const response = await await apiClient.get<Event>(`/events/${id}`);
       return response.data;
     } catch (error: any) {
-      console.error(`Erreur lors du chargement de l'événement ${id} :`, error.message);
+      console.error(
+        `Erreur lors du chargement de l'événement ${id} :`,
+        error.message
+      );
       throw error;
     }
   },
@@ -40,7 +47,10 @@ export const EventService = {
       const response = await await apiClient.post<Event>("/events", data);
       return response.data;
     } catch (error: any) {
-      console.error("Erreur lors de la création de l'événement :", error.message);
+      console.error(
+        "Erreur lors de la création de l'événement :",
+        error.message
+      );
       throw error;
     }
   },
@@ -51,7 +61,10 @@ export const EventService = {
       const response = await await apiClient.put<Event>(`/events/${id}`, data);
       return response.data;
     } catch (error: any) {
-      console.error(`Erreur lors de la mise à jour de l'événement ${id} :`, error.message);
+      console.error(
+        `Erreur lors de la mise à jour de l'événement ${id} :`,
+        error.message
+      );
       throw error;
     }
   },
@@ -59,10 +72,13 @@ export const EventService = {
   // 🔴 Supprimer un événement
   async deleteEvent(id: string): Promise<void> {
     try {
-      const response =  await apiClient.delete(`/events/${id}`);
+      const response = await apiClient.delete(`/events/${id}`);
       return response.data;
     } catch (error: any) {
-      console.error(`Erreur lors de la suppression de l'événement ${id} :`, error.message);
+      console.error(
+        `Erreur lors de la suppression de l'événement ${id} :`,
+        error.message
+      );
       throw error;
     }
   },
