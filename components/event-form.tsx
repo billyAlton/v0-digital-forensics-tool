@@ -1,53 +1,59 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { useState , useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent } from "@/components/ui/card"
-import { EventService } from "@/src/services/event.service"
-import { Calendar, MapPin, Users, Clock } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
+import type React from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
+import { EventService } from "@/src/services/event.service";
 
 interface EventFormProps {
   event?: {
-    id: string
-    title: string
-    description: string | null
-    event_type: string
-    start_date: string
-    end_date: string
-    location: string | null
-    max_attendees: number | null
-  }
+    id: string;
+    title: string;
+    description: string | null;
+    event_type: string;
+    start_date: string;
+    end_date: string;
+    location: string | null;
+    max_attendees: number | null;
+  };
+  onSuccess?: () => void; // callback après création ou mise à jour
 }
 
-export function EventForm({ event }: EventFormProps) {
-   const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [events, setEvents] = useState<any>([])
+export const EventForm: React.FC<EventFormProps> = ({ event, onSuccess }) => {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     title: event?.title || "",
     description: event?.description || "",
     event_type: event?.event_type || "service",
-    start_date: event?.start_date ? new Date(event.start_date).toISOString().slice(0, 16) : "",
-    end_date: event?.end_date ? new Date(event.end_date).toISOString().slice(0, 16) : "",
+    start_date: event?.start_date
+      ? new Date(event.start_date).toISOString().slice(0, 16)
+      : "",
+    end_date: event?.end_date
+      ? new Date(event.end_date).toISOString().slice(0, 16)
+      : "",
     location: event?.location || "",
     max_attendees: event?.max_attendees?.toString() || "",
-  })
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError(null)
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
 
     const eventData = {
       title: formData.title,
@@ -56,49 +62,31 @@ export function EventForm({ event }: EventFormProps) {
       start_date: new Date(formData.start_date).toISOString(),
       end_date: new Date(formData.end_date).toISOString(),
       location: formData.location || null,
-      max_attendees: formData.max_attendees ? Number(formData.max_attendees) : null,
-      created_by: "admin", // tu pourras remplacer par ton système d’auth plus tard
-    }
+      max_attendees: formData.max_attendees
+        ? Number(formData.max_attendees)
+        : null,
+      created_by: "admin",
+    };
 
     try {
       if (event) {
-        await EventService.updateEvent(event.id, eventData)
+        await EventService.updateEvent(event.id, eventData);
       } else {
-        await EventService.createEvent(eventData)
+        await EventService.createEvent(eventData);
       }
 
-      router.push("/admin/events")
-      router.refresh()
+      onSuccess?.(); // appel du callback pour rafraîchir la liste ou fermer le formulaire
+      router.refresh();
     } catch (err: any) {
-      setError(err.message || "An error occurred")
+      setError(err.message || "An error occurred");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
-
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const data = await EventService.getAllEvents()
-        setEvents(data)
-      } catch (err: any) {
-        setError(err.message || "Erreur lors du chargement des événements")
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchEvents()
-  }, [])
-
-  if (isLoading) return <p>Loading events...</p>
-  if (error) return <p className="text-red-600">{error}</p>
-  if (events.length === 0) return <p>No events found.</p>
+  };
 
   return (
     <Card>
       <CardContent className="pt-6">
-        
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-2">
@@ -107,7 +95,9 @@ export function EventForm({ event }: EventFormProps) {
                 id="title"
                 required
                 value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, title: e.target.value })
+                }
               />
             </div>
 
@@ -115,7 +105,9 @@ export function EventForm({ event }: EventFormProps) {
               <Label htmlFor="event_type">Event Type *</Label>
               <Select
                 value={formData.event_type}
-                onValueChange={(value) => setFormData({ ...formData, event_type: value })}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, event_type: value })
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -137,7 +129,9 @@ export function EventForm({ event }: EventFormProps) {
               id="description"
               rows={4}
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
             />
           </div>
 
@@ -149,7 +143,9 @@ export function EventForm({ event }: EventFormProps) {
                 type="datetime-local"
                 required
                 value={formData.start_date}
-                onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, start_date: e.target.value })
+                }
               />
             </div>
 
@@ -160,7 +156,9 @@ export function EventForm({ event }: EventFormProps) {
                 type="datetime-local"
                 required
                 value={formData.end_date}
-                onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, end_date: e.target.value })
+                }
               />
             </div>
           </div>
@@ -171,7 +169,9 @@ export function EventForm({ event }: EventFormProps) {
               <Input
                 id="location"
                 value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, location: e.target.value })
+                }
               />
             </div>
 
@@ -182,7 +182,9 @@ export function EventForm({ event }: EventFormProps) {
                 type="number"
                 min="1"
                 value={formData.max_attendees}
-                onChange={(e) => setFormData({ ...formData, max_attendees: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, max_attendees: e.target.value })
+                }
               />
             </div>
           </div>
@@ -195,16 +197,15 @@ export function EventForm({ event }: EventFormProps) {
 
           <div className="flex gap-4">
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Saving..." : event ? "Update Event" : "Create Event"}
-            </Button>
-            <Button type="button" variant="outline" onClick={() => router.back()}>
-              Cancel
+              {isLoading
+                ? "Saving..."
+                : event
+                ? "Update Event"
+                : "Create Event"}
             </Button>
           </div>
         </form>
       </CardContent>
     </Card>
-
-    
-  )
-}
+  );
+};
