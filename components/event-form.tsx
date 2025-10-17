@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState , useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
@@ -12,6 +12,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
 import { EventService } from "@/src/services/event.service"
+import { Calendar, MapPin, Users, Clock } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 
 interface EventFormProps {
   event?: {
@@ -30,6 +32,7 @@ export function EventForm({ event }: EventFormProps) {
    const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [events, setEvents] = useState<any>([])
 
   const [formData, setFormData] = useState({
     title: event?.title || "",
@@ -73,9 +76,29 @@ export function EventForm({ event }: EventFormProps) {
     }
   }
 
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const data = await EventService.getAllEvents()
+        setEvents(data)
+      } catch (err: any) {
+        setError(err.message || "Erreur lors du chargement des événements")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchEvents()
+  }, [])
+
+  if (isLoading) return <p>Loading events...</p>
+  if (error) return <p className="text-red-600">{error}</p>
+  if (events.length === 0) return <p>No events found.</p>
+
   return (
     <Card>
       <CardContent className="pt-6">
+        
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-2">
@@ -181,5 +204,7 @@ export function EventForm({ event }: EventFormProps) {
         </form>
       </CardContent>
     </Card>
+
+    
   )
 }

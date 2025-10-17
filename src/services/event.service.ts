@@ -16,7 +16,7 @@ export const EventService = {
   // 🟢 Récupérer tous les événements
   async getAllEvents(): Promise<Event[]> {
     try {
-      const response = await apiClient.get<Event[]>("/events");
+      const response = await apiClient.get<Event[]>("/events/get");
       return response.data;
     } catch (error: any) {
       console.error(
@@ -30,7 +30,7 @@ export const EventService = {
   // 🟣 Récupérer un événement par ID
   async getEventById(id: string): Promise<Event> {
     try {
-      const response = await await apiClient.get<Event>(`/events/${id}`);
+      const response =  await apiClient.get<Event>(`/events/${id}`);
       return response.data;
     } catch (error: any) {
       console.error(
@@ -44,7 +44,8 @@ export const EventService = {
   // 🟡 Créer un nouvel événement
   async createEvent(data: Event | FormData): Promise<Event> {
     try {
-      const response = await await apiClient.post<Event>("/events", data);
+      console.log("Event : ", data);
+      const response =  await apiClient.post<Event>("/events/create", data);
       return response.data;
     } catch (error: any) {
       console.error(
@@ -58,7 +59,7 @@ export const EventService = {
   // 🟠 Mettre à jour un événement
   async updateEvent(id: string, data: Event | FormData): Promise<Event> {
     try {
-      const response = await await apiClient.put<Event>(`/events/${id}`, data);
+      const response =  await apiClient.put<Event>(`/events/${id}`, data);
       return response.data;
     } catch (error: any) {
       console.error(
