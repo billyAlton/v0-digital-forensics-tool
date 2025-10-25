@@ -9,7 +9,7 @@ import { format } from "date-fns";
 import { DeleteEventButton } from "@/components/delete-event-button"
 import { EventService, Event } from "@/src/services/event.service";
 
-export default async function EventsPage() {
+export default  function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

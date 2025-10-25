@@ -13,9 +13,9 @@ export const BASE_URL = "http://localhost:8000/api";
 const apiClient: AxiosInstance = axios.create({
   baseURL: BASE_URL,
   timeout: 80000, // 10 seconds
-  // headers: {
-  //   "Content-Type": "application/json",
-  // },
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
 // Request Interceptor: Attach JWT token to every request
@@ -24,6 +24,9 @@ apiClient.interceptors.request.use(
     const token = localStorage.getItem("token"); // Get token from local storage
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    if (config.data instanceof FormData) {
+      delete config.headers["Content-Type"];
     }
     return config;
   },
@@ -64,7 +67,7 @@ export const get = async <T>(
 };
 
 // Generic POST request
-export const post = async <T>(
+/* export const post = async <T>(
   url: string,
   data: Record<string, any> | FormData = {}
 ): Promise<T> => {
@@ -73,6 +76,18 @@ export const post = async <T>(
       headers:
         data instanceof FormData ? {} : { "Content-Type": "application/json" },
     });
+    return response.data;
+  } catch (error: any) {
+    throw error;
+  }
+}; */
+
+export const post = async <T>(
+  url: string,
+  data: Record<string, any> | FormData = {}
+): Promise<T> => {
+  try {
+    const response = await apiClient.post<T>(url, data);
     return response.data;
   } catch (error: any) {
     throw error;

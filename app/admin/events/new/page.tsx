@@ -40,6 +40,7 @@ export default function NewEventPage() {
     setShowForm(false);
     fetchEvents(); // rafraîchir la liste après création
   };
+  
 
   return (
     <div className="space-y-8">
