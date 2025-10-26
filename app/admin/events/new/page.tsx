@@ -11,8 +11,16 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Calendar, MapPin, Users, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Calendar,
+  MapPin,
+  Users,
+  Plus,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { BASE_URL } from "@/lib/apiCaller";
 
 // Composant Carousel pour les images
 function ImageCarousel({ images }: { images: string[] }) {
@@ -35,14 +43,20 @@ function ImageCarousel({ images }: { images: string[] }) {
     e.stopPropagation();
     setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
+  const baseMediaUrl = BASE_URL.replace("/api", "");
 
   return (
     <div className="relative w-full h-48 bg-gray-900 rounded-t-lg overflow-hidden group">
       {/* Image */}
-      <img
+      {/* <img
         src={images[currentIndex]}
         alt={`Event image ${currentIndex + 1}`}
         className="w-full h-full object-cover transition-opacity duration-300"
+      /> */}
+      <img
+        src={`${baseMediaUrl}${images[currentIndex]}`}
+        alt={`Image ${currentIndex + 1}`}
+        className="rounded-lg object-cover w-full h-64"
       />
 
       {/* Overlay gradient */}
@@ -179,7 +193,9 @@ export default function NewEventPage() {
 
                 <CardHeader>
                   <div className="flex items-start justify-between gap-2">
-                    <CardTitle className="line-clamp-2">{event.title}</CardTitle>
+                    <CardTitle className="line-clamp-2">
+                      {event.title}
+                    </CardTitle>
                     <Badge variant="secondary" className="capitalize shrink-0">
                       {event.event_type}
                     </Badge>
@@ -191,13 +207,16 @@ export default function NewEventPage() {
                     <p className="flex items-center gap-2 text-sm text-gray-600">
                       <Calendar size={16} className="text-primary shrink-0" />
                       <span className="line-clamp-1">
-                        {new Date(event.start_date).toLocaleDateString('fr-FR', {
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
+                        {new Date(event.start_date).toLocaleDateString(
+                          "fr-FR",
+                          {
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          }
+                        )}
                       </span>
                     </p>
 
