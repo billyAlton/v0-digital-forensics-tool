@@ -19,7 +19,7 @@ import { EventService } from "@/src/services/event.service";
 
 interface EventFormProps {
   event?: {
-    id: string;
+    _id: string;
     title: string;
     description: string | null;
     event_type: string;
@@ -36,6 +36,19 @@ export const EventForm: React.FC<EventFormProps> = ({ event, onSuccess }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  /* const [formData, setFormData] = useState({
+    title: event?.title || "",
+    description: event?.description || "",
+    event_type: event?.event_type || "service",
+    start_date: event?.start_date
+      ? new Date(event.start_date).toISOString().slice(0, 16)
+      : "",
+    end_date: event?.end_date
+      ? new Date(event.end_date).toISOString().slice(0, 16)
+      : "",
+    location: event?.location || "",
+    max_attendees: event?.max_attendees?.toString() || "",
+  }); */
   const [formData, setFormData] = useState({
     title: event?.title || "",
     description: event?.description || "",
@@ -48,6 +61,7 @@ export const EventForm: React.FC<EventFormProps> = ({ event, onSuccess }) => {
       : "",
     location: event?.location || "",
     max_attendees: event?.max_attendees?.toString() || "",
+    images: [] as File[],
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -69,10 +83,27 @@ export const EventForm: React.FC<EventFormProps> = ({ event, onSuccess }) => {
     };
 
     try {
+      const formDataToSend = new FormData();
+      Object.entries(eventData).forEach(([key, value]) => {
+        if (value !== null && value !== undefined) {
+          formDataToSend.append(key, String(value));
+        }
+      });
+
+      // Ajouter les images si elles existent
+      if (formData.images && formData.images.length > 0) {
+        formData.images.forEach((file) => {
+          formDataToSend.append("images", file);
+        });
+      }
+      console.log("Sent to service : ", formDataToSend);
+
+      // A
+
       if (event) {
-        await EventService.updateEvent(event.id, eventData);
+        await EventService.updateEvent(event._id, formDataToSend);
       } else {
-        await EventService.createEvent(eventData);
+        await EventService.createEvent(formDataToSend);
       }
 
       onSuccess?.(); // appel du callback pour rafraîchir la liste ou fermer le formulaire
@@ -194,6 +225,32 @@ export const EventForm: React.FC<EventFormProps> = ({ event, onSuccess }) => {
               <p className="text-sm text-red-600">{error}</p>
             </div>
           )}
+          <div className="space-y-2">
+            <Label htmlFor="images">Images</Label>
+            <Input
+              id="images"
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={(e) => {
+                const files = e.target.files ? Array.from(e.target.files) : [];
+                setFormData({ ...formData, images: files });
+              }}
+            />
+            {formData.images && formData.images.length > 0 && (
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                {formData.images.map((file, index) => (
+                  <div key={index} className="relative">
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt={`preview-${index}`}
+                      className="rounded-lg object-cover w-full h-24"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
           <div className="flex gap-4">
             <Button type="submit" disabled={isLoading}>

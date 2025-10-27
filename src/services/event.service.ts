@@ -10,6 +10,7 @@ export interface Event {
   end_date: string;
   location: string | null;
   max_attendees: number | null;
+  images?: string[];
 }
 
 export const EventService = {
@@ -44,14 +45,24 @@ export const EventService = {
   // 🟡 Créer un nouvel événement
   async createEvent(data: Event | FormData): Promise<Event> {
     try {
-      console.log("Event : ", data);
-      const response =  await apiClient.post<Event>("/events/create", data);
+      console.log("=== Envoi des données ===");
+      console.log("Type:", data instanceof FormData ? "FormData" : "Object");
+      
+      if (data instanceof FormData) {
+        console.log("Contenu du FormData:");
+        for (let [key, value] of data.entries()) {
+          console.log(`${key}:`, value instanceof File ? `File: ${value.name}` : value);
+        }
+      }
+      
+      const response = await apiClient.post<Event>("/events/create", data);
+      console.log("Réponse:", response.data);
       return response.data;
     } catch (error: any) {
-      console.error(
-        "Erreur lors de la création de l'événement :",
-        error.message
-      );
+      console.error("=== ERREUR COMPLÈTE ===");
+      console.error("Message:", error.message);
+      console.error("Response:", error.response?.data);
+      console.error("Status:", error.response?.status);
       throw error;
     }
   },
