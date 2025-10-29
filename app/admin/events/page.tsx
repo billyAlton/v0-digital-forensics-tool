@@ -6,14 +6,25 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Plus, Calendar, MapPin, Users } from "lucide-react";
 import { format } from "date-fns";
-import { DeleteEventButton } from "@/components/delete-event-button"
+import { DeleteEventButton } from "@/components/delete-event-button";
 import { EventService, Event } from "@/src/services/event.service";
+import { BASE_URL } from "@/lib/apiCaller";
 
-export default  function EventsPage() {
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+
+export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+   const baseMediaUrl = BASE_URL.replace("/api", "");
 
   const fetchEvents = async () => {
     try {
@@ -60,7 +71,18 @@ export default  function EventsPage() {
                 </div>
               </div>
             </CardHeader>
+
             <CardContent>
+              {event.images && event.images.length > 0 && (
+                <div className="mb-3">
+                  <img
+                    src={`${baseMediaUrl}${event.images[0]}`}
+                    alt={event.title}
+                    className="rounded-md object-cover w-full h-48"
+                  />
+                </div>
+              )}
+
               <div className="space-y-2 text-sm text-gray-600">
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
@@ -84,22 +106,23 @@ export default  function EventsPage() {
                   </div>
                 )}
               </div>
+
               <p className="mt-4 text-sm text-gray-700 line-clamp-2">
                 {event.description}
               </p>
+
               <div className="mt-4 flex gap-2">
                 <Button
-                  asChild
                   size="sm"
                   variant="outline"
                   className="flex-1 bg-transparent"
+                  onClick={() => setSelectedEvent(event)}
                 >
-                  <Link href={`/admin/events/${event._id}`}>View</Link>
+                  View Details
                 </Button>
                 <Button asChild size="sm" className="flex-1">
                   <Link href={`/admin/events/${event._id}/edit`}>Edit</Link>
-                </Button>{/* 
-                <DeleteEventButton eventId={event._id} size="sm" /> */}
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -126,6 +149,78 @@ export default  function EventsPage() {
             </CardContent>
           </Card>
         ))}
+
+      <Dialog
+        open={!!selectedEvent}
+        onOpenChange={() => setSelectedEvent(null)}
+      >
+        <DialogContent className="max-w-2xl">
+          {selectedEvent && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-xl font-bold mb-2">
+                  {selectedEvent.title}
+                </DialogTitle>
+                <Badge variant="secondary" className="capitalize">
+                  {selectedEvent.event_type}
+                </Badge>
+              </DialogHeader>
+
+              {/* Images */}
+              {selectedEvent.images && selectedEvent.images.length > 0 && (
+                <div className="my-3">
+                  <img
+                    src={`${baseMediaUrl}${selectedEvent.images[0]}`}
+                    alt={selectedEvent.title}
+                    className="rounded-md object-cover w-full h-56"
+                  />
+                </div>
+              )}
+
+              {/* Infos */}
+              <div className="space-y-3 text-sm text-gray-700">
+                <p className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-primary" />
+                  {format(
+                    new Date(selectedEvent.start_date),
+                    "MMM dd, yyyy 'at' h:mm a"
+                  )}
+                </p>
+
+                {selectedEvent.location && (
+                  <p className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-primary" />
+                    {selectedEvent.location}
+                  </p>
+                )}
+
+                {selectedEvent.max_attendees && (
+                  <p className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-primary" />
+                    Max: {selectedEvent.max_attendees} attendees
+                  </p>
+                )}
+
+                {selectedEvent.description && (
+                  <p className="mt-4 leading-relaxed">
+                    {selectedEvent.description}
+                  </p>
+                )}
+              </div>
+
+              {/* Actions */}
+              <DialogFooter className="mt-4 flex gap-3 justify-end">
+                <Button asChild variant="outline">
+                  <Link href={`/admin/events/${selectedEvent._id}/edit`}>
+                    Edit
+                  </Link>
+                </Button>
+                <DeleteEventButton eventId={selectedEvent._id!} />
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

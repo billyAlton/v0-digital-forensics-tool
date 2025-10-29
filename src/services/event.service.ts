@@ -84,7 +84,7 @@ export const EventService = {
   // 🔴 Supprimer un événement
   async deleteEvent(id: string): Promise<void> {
     try {
-      const response = await apiClient.delete(`/events/${id}`);
+      const response = await apiClient.delete(`/events/delete/${id}`);
       return response.data;
     } catch (error: any) {
       console.error(
