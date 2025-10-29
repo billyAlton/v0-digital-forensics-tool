@@ -16,6 +16,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Trash2 } from "lucide-react"
+import { EventService } from "@/src/services/event.service";
 
 export function DeleteEventButton({
   eventId,
@@ -30,16 +31,12 @@ export function DeleteEventButton({
 
     try {
       console.log("[v0] Deleting event:", eventId)
-      const { error } = await supabase.from("events").delete().eq("id", eventId)
-
-      if (error) {
-        console.log("[v0] Delete error:", error)
-        throw error
-      }
+      const  response  = await EventService.deleteEvent(eventId);
 
       console.log("[v0] Event deleted successfully")
       router.push("/admin/events")
       router.refresh()
+      window.location.reload();
     } catch (error) {
       console.error("Error deleting event:", error)
       alert("Failed to delete event. Please check the console for details.")
