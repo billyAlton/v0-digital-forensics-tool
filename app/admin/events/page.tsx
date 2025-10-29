@@ -24,7 +24,8 @@ export default function EventsPage() {
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-   const baseMediaUrl = BASE_URL.replace("/api", "");
+  const baseMediaUrl = BASE_URL.replace("/api", "");
+  const [isEditing, setIsEditing] = useState(false);
 
   const fetchEvents = async () => {
     try {
@@ -41,6 +42,125 @@ export default function EventsPage() {
   useEffect(() => {
     fetchEvents();
   }, []);
+
+  function EventForm({
+    event,
+    onCancel,
+    onSuccess,
+  }: {
+    event: Event;
+    onCancel: () => void;
+    onSuccess: () => void;
+  }) {
+    const [formData, setFormData] = useState(event);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+      const { name, value } = e.target;
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setLoading(true);
+      try {
+        await EventService.updateEvent(event._id!, {
+          ...formData,
+          start_date: new Date(formData.start_date).toISOString(),
+          end_date: new Date(formData.end_date).toISOString(),
+        });
+        onSuccess();
+      } catch (err: any) {
+        setError(err.message || "Erreur lors de la mise à jour");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    return (
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {error && <p className="text-red-500 text-sm">{error}</p>}
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Title</label>
+          <input
+            type="text"
+            name="title"
+            value={formData.title}
+            onChange={handleChange}
+            className="w-full border rounded-md p-2"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Description</label>
+          <textarea
+            name="description"
+            value={formData.description || ""}
+            onChange={handleChange}
+            className="w-full border rounded-md p-2"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Start date</label>
+            <input
+              type="datetime-local"
+              name="start_date"
+              value={formData.start_date.slice(0, 16)}
+              onChange={handleChange}
+              className="w-full border rounded-md p-2"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">End date</label>
+            <input
+              type="datetime-local"
+              name="end_date"
+              value={formData.end_date.slice(0, 16)}
+              onChange={handleChange}
+              className="w-full border rounded-md p-2"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Location</label>
+          <input
+            type="text"
+            name="location"
+            value={formData.location || ""}
+            onChange={handleChange}
+            className="w-full border rounded-md p-2"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Max attendees</label>
+          <input
+            type="number"
+            name="max_attendees"
+            value={formData.max_attendees ?? ""}
+            onChange={handleChange}
+            className="w-full border rounded-md p-2"
+          />
+        </div>
+
+        <div className="flex justify-end gap-3 pt-4">
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={loading}>
+            {loading ? "Saving..." : "Save Changes"}
+          </Button>
+        </div>
+      </form>
+    );
+  }
+
+
   return (
     <div>
       <div className="mb-8 flex items-center justify-between">
