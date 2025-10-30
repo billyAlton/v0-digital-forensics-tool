@@ -18,12 +18,19 @@ export interface Sermon {
   updated_at?: string;
 }
 
+// services/sermon.service.ts
 export const SermonService = {
-  //  Récupérer tous les sermons
+  // 🟢 Récupérer tous les sermons
   async getAllSermons(): Promise<Sermon[]> {
     try {
-      const response = await apiClient.get<Sermon[]>("/sermons/sermons");
-      return response.data;
+      const response = await apiClient.get<{
+        success: boolean;
+        data: Sermon[];
+        count: number;
+      }>("/sermons");
+      
+      // Retourner directement le tableau data
+      return response.data.data;
     } catch (error: any) {
       console.error(
         "Erreur lors du chargement des sermons :",
@@ -36,8 +43,12 @@ export const SermonService = {
   // 🟣 Récupérer un sermon par ID
   async getSermonById(id: string): Promise<Sermon> {
     try {
-      const response = await apiClient.get<Sermon>(`/sermons/${id}`);
-      return response.data;
+      const response = await apiClient.get<{
+        success: boolean;
+        data: Sermon;
+      }>(`/sermons/${id}`);
+      
+      return response.data.data;
     } catch (error: any) {
       console.error(
         `Erreur lors du chargement du sermon ${id} :`,
@@ -51,20 +62,30 @@ export const SermonService = {
   async createSermon(data: Sermon | FormData): Promise<Sermon> {
     try {
       console.log("=== Envoi des données du sermon ===");
-      console.log("Type:", data instanceof FormData ? "FormData" : "Object");
+      
+      let requestData: any;
       
       if (data instanceof FormData) {
-        console.log("Contenu du FormData:");
-        for (let [key, value] of data.entries()) {
-          console.log(`${key}:`, value instanceof File ? `File: ${value.name}` : value);
-        }
+        requestData = data;
+        console.log("Type: FormData");
       } else {
-        console.log("Données JSON:", data);
+        requestData = {
+          ...data,
+          tags: Array.isArray(data.tags) ? data.tags : 
+                typeof data.tags === 'string' ? data.tags.split(',').map(tag => tag.trim()) : 
+                []
+        };
+        console.log("Type: Object - Tags:", requestData.tags);
       }
       
-      const response = await apiClient.post<Sermon>("/sermons/sermons", data);
+      const response = await apiClient.post<{
+        success: boolean;
+        data: Sermon;
+        message: string;
+      }>("/sermons", requestData);
+      
       console.log("Réponse:", response.data);
-      return response.data;
+      return response.data.data;
     } catch (error: any) {
       console.error("=== ERREUR COMPLÈTE ===");
       console.error("Message:", error.message);
@@ -78,15 +99,32 @@ export const SermonService = {
   async updateSermon(id: string, data: Partial<Sermon> | FormData): Promise<Sermon> {
     try {
       console.log(`=== Mise à jour du sermon ${id} ===`);
-      console.log("Type:", data instanceof FormData ? "FormData" : "Object");
       
-      if (!(data instanceof FormData)) {
-        console.log("Données JSON:", data);
+      let requestData: any;
+      
+      if (data instanceof FormData) {
+        requestData = data;
+        console.log("Type: FormData");
+      } else {
+        requestData = {
+          ...data,
+          tags: data.tags !== undefined ? 
+                (Array.isArray(data.tags) ? data.tags : 
+                 typeof data.tags === 'string' ? data.tags?.split(',').map(tag => tag.trim()) : 
+                 []) : 
+                undefined
+        };
+        console.log("Type: Object - Tags:", requestData.tags);
       }
       
-      const response = await apiClient.put<Sermon>(`/sermons/sermons/${id}`, data);
+      const response = await apiClient.put<{
+        success: boolean;
+        data: Sermon;
+        message: string;
+      }>(`/sermons/${id}`, requestData);
+      
       console.log("Réponse:", response.data);
-      return response.data;
+      return response.data.data;
     } catch (error: any) {
       console.error("=== ERREUR COMPLÈTE ===");
       console.error("Message:", error.message);
@@ -97,9 +135,13 @@ export const SermonService = {
   },
 
   // 🔴 Supprimer un sermon
-  async deleteSermon(id: string): Promise<void> {
+  async deleteSermon(id: string): Promise<any> {
     try {
-      const response = await apiClient.delete(`/sermons/${id}`);
+      const response = await apiClient.delete<{
+        success: boolean;
+        message: string;
+      }>(`/sermons/${id}`);
+      
       return response.data;
     } catch (error: any) {
       console.error(
@@ -120,55 +162,16 @@ export const SermonService = {
     endDate?: string;
   }): Promise<Sermon[]> {
     try {
-      const response = await apiClient.get<Sermon[]>("/sermons/search", {
-        params
-      });
-      return response.data;
+      const response = await apiClient.get<{
+        success: boolean;
+        data: Sermon[];
+        count: number;
+      }>("/sermons/search", { params });
+      
+      return response.data.data;
     } catch (error: any) {
       console.error(
         "Erreur lors de la recherche des sermons :",
-        error.message
-      );
-      throw error;
-    }
-  },
-
-  // 🟣 Récupérer les sermons par série
-  async getSermonsBySeries(series: string): Promise<Sermon[]> {
-    try {
-      const response = await apiClient.get<Sermon[]>(`/sermons/series/${series}`);
-      return response.data;
-    } catch (error: any) {
-      console.error(
-        `Erreur lors du chargement des sermons de la série ${series} :`,
-        error.message
-      );
-      throw error;
-    }
-  },
-
-  // 🟢 Récupérer les sermons par pasteur
-  async getSermonsByPastor(pastorName: string): Promise<Sermon[]> {
-    try {
-      const response = await apiClient.get<Sermon[]>(`/sermons/pastor/${pastorName}`);
-      return response.data;
-    } catch (error: any) {
-      console.error(
-        `Erreur lors du chargement des sermons du pasteur ${pastorName} :`,
-        error.message
-      );
-      throw error;
-    }
-  },
-
-  // 🟡 Récupérer les dernières sermons
-  async getRecentSermons(limit: number = 10): Promise<Sermon[]> {
-    try {
-      const response = await apiClient.get<Sermon[]>(`/sermons/recent?limit=${limit}`);
-      return response.data;
-    } catch (error: any) {
-      console.error(
-        "Erreur lors du chargement des sermons récents :",
         error.message
       );
       throw error;
