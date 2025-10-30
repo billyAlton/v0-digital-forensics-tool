@@ -19,10 +19,10 @@ export interface Sermon {
 }
 
 export const SermonService = {
-  // 🟢 Récupérer tous les sermons
+  //  Récupérer tous les sermons
   async getAllSermons(): Promise<Sermon[]> {
     try {
-      const response = await apiClient.get<Sermon[]>("/sermons");
+      const response = await apiClient.get<Sermon[]>("/sermons/sermons");
       return response.data;
     } catch (error: any) {
       console.error(
