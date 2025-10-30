@@ -20,7 +20,7 @@ import {
 import { DeleteSermonButton } from "@/components/delete-sermon-button";
 import { SermonService, type Sermon } from "@/src/services/sermon.service";
 import { toast } from "sonner";
-import { fr } from 'date-fns/locale'
+import { fr } from "date-fns/locale";
 
 // Utilisation
 export default function SermonDetailPage() {
@@ -37,8 +37,6 @@ export default function SermonDetailPage() {
     loadSermon();
   }, [id]);
 
-  
-
   const loadSermon = async () => {
     try {
       setLoading(true);
@@ -53,7 +51,6 @@ export default function SermonDetailPage() {
       setLoading(false);
     }
   };
-
 
   const handleDeleteSuccess = () => {
     toast.success("Sermon supprimé avec succès");
@@ -114,7 +111,13 @@ export default function SermonDetailPage() {
             )}
             <Badge variant="outline" className="flex items-center gap-1">
               <Calendar className="h-3 w-3" />
-              {sermon.createdAt}
+              {sermon.createdAt
+                ? new Date(sermon.createdAt).toLocaleDateString("fr-FR", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })
+                : "Date inconnue"}
             </Badge>
           </div>
         </div>
@@ -154,7 +157,14 @@ export default function SermonDetailPage() {
                   <h3 className="font-semibold text-gray-900 mb-2">Date</h3>
                   <div className="flex items-center gap-2 text-gray-700">
                     <Calendar className="h-4 w-4" />
-                    {sermon.createdAt}
+                    {new Date(sermon.createdAt ?? "").toLocaleDateString(
+                      "fr-FR",
+                      {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      }
+                    )}
                   </div>
                 </div>
                 {sermon.scripture_reference && (
@@ -290,13 +300,12 @@ export default function SermonDetailPage() {
                     ? format(new Date(sermon.createdAt), "dd/MM/yyyy")
                     : "N/A"}
                 </p>
-                {sermon.updatedAt &&
-                  sermon.updatedAt !== sermon.createdAt && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Modifié le:{" "}
-                      {format(new Date(sermon.updatedAt), "dd/MM/yyyy")}
-                    </p>
-                  )}
+                {sermon.updatedAt && sermon.updatedAt !== sermon.createdAt && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Modifié le:{" "}
+                    {format(new Date(sermon.updatedAt), "dd/MM/yyyy")}
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
