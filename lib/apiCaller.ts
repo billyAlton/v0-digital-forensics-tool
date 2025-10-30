@@ -6,6 +6,7 @@ import axios, {
 } from "axios";
 // Base URL for the API
 export const BASE_URL = "http://localhost:8000/api";
+import { createClient } from "@/lib/supabase/client";
 
 // export const BASE_URL = 'https://codux.kababeats.com/api';
 
@@ -18,17 +19,43 @@ const apiClient: AxiosInstance = axios.create({
   },
 });
 
+const getSupabaseToken = async (): Promise<string | null> => {
+  try {
+    const supabase = createClient();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    return session?.access_token || null;
+  } catch (error) {
+    console.error("Erreur récupération token Supabase:", error);
+    return null;
+  }
+};
+
 // Request Interceptor: Attach JWT token to every request
 apiClient.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem("token"); // Get token from local storage
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
+  async (config: InternalAxiosRequestConfig) => {
+    try {
+      // Récupérer le token depuis Supabase
+      const token = await getSupabaseToken();
+
+      if (token && config.headers) {
+        config.headers.Authorization = `Bearer ${token}`;
+        console.log("Token ajouté à la requête");
+      } else {
+        console.warn("Aucun token Supabase trouvé");
+      }
+
+      // Gérer FormData
+      if (config.data instanceof FormData) {
+        delete config.headers["Content-Type"];
+      }
+
+      return config;
+    } catch (error) {
+      console.error("Erreur interceptor request:", error);
+      return config;
     }
-    if (config.data instanceof FormData) {
-      delete config.headers["Content-Type"];
-    }
-    return config;
   },
   (error: AxiosError) => {
     return Promise.reject(error);
@@ -38,15 +65,23 @@ apiClient.interceptors.request.use(
 // Response Interceptor: Handle expired token (401 Unauthorized)
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => response,
-  (error: AxiosError) => {
+  async (error: AxiosError) => {
     if (error.response?.status === 401) {
       // Token expiré ou invalide
-      console.warn("Token expiré ou non valide");
+      console.warn("Token expiré ou non valide - Déconnexion...");
 
-      // Option 1 : Déconnecter l'utilisateur
-      localStorage.removeItem("token");
-      // window.location.href = '/login';
-      // redirection vers la page de login
+      // Déconnecter l'utilisateur via Supabase
+      try {
+        const supabase = createClient();
+        await supabase.auth.signOut();
+
+        // Redirection vers la page de login
+        if (typeof window !== "undefined") {
+          window.location.href = "/auth/login";
+        }
+      } catch (logoutError) {
+        console.error("Erreur lors de la déconnexion:", logoutError);
+      }
     }
 
     return Promise.reject(error);
