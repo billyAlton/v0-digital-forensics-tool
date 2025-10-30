@@ -14,8 +14,8 @@ export interface Sermon {
   series: string | null;
   tags: string[];
   created_by?: string;
-  created_at?: string;
-  updated_at?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export const SermonService = {
@@ -34,9 +34,9 @@ export const SermonService = {
   },
 
   // 🟣 Récupérer un sermon par ID
-  async getSermonById(id: string): Promise<Sermon> {
+  async getSermonById(id: string): Promise<any> {
     try {
-      const response = await apiClient.get<Sermon>(`/sermons/${id}`);
+      const response = await apiClient.get<Sermon>(`/sermons/sermons/${id}`);
       return response.data;
     } catch (error: any) {
       console.error(
@@ -99,7 +99,7 @@ export const SermonService = {
   // 🔴 Supprimer un sermon
   async deleteSermon(id: string): Promise<void> {
     try {
-      const response = await apiClient.delete(`/sermons/${id}`);
+      const response = await apiClient.delete(`/sermons/sermons/${id}`);
       return response.data;
     } catch (error: any) {
       console.error(
