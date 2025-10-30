@@ -47,8 +47,8 @@ export default function SermonsPage() {
     try {
       setLoading(true);
       const data = await SermonService.getAllSermons();
-      setSermons(data);
-      setFilteredSermons(data);
+      setSermons(data.data);
+      setFilteredSermons(data.data);
     } catch (err: any) {
       setError(err.message || "Erreur lors du chargement des sermons");
       console.error("Erreur:", err);
