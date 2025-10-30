@@ -81,7 +81,7 @@ export const EventService = {
     }
   },
 
-  // 🔴 Supprimer un événement
+  //  Supprimer un événement
   async deleteEvent(id: string): Promise<void> {
     try {
       const response = await apiClient.delete(`/events/delete/${id}`);
