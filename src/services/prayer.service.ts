@@ -7,7 +7,7 @@ export interface PrayerRequest {
   description: string;
   requester_name: string | null;
   requester_id: string;
-  status: 'active' | 'answered' | 'archived';
+  status: string;
   is_anonymous: boolean;
   is_public: boolean;
   prayer_count: number;
@@ -28,7 +28,7 @@ export const PrayerRequestService = {
         success: boolean;
         data: PrayerRequest[];
         pagination: any;
-      }>("/prayer-requests", { params });
+      }>("/prayers/prayer-requests", { params });
       return response.data;
     } catch (error: any) {
       console.error("Erreur chargement demandes de prière:", error.message);
@@ -57,7 +57,7 @@ export const PrayerRequestService = {
         success: boolean;
         data: PrayerRequest;
         message: string;
-      }>("/prayer-requests", data);
+      }>("/prayers/prayer-requests", data);
       return response.data.data;
     } catch (error: any) {
       console.error("Erreur création demande:", error.message);
@@ -91,13 +91,13 @@ export const PrayerRequestService = {
   },
 
   // 🔵 Incrémenter le compteur de prières
-  async incrementPrayerCount(id: string): Promise<PrayerRequest> {
+  async incrementPrayerCount(id: any): Promise<PrayerRequest> {
     try {
       const response = await apiClient.patch<{
         success: boolean;
         data: PrayerRequest;
         message: string;
-      }>(`/prayer-requests/${id}/pray`);
+      }>(`/prayers/prayer-requests/${id}/pray`);
       return response.data.data;
     } catch (error: any) {
       console.error(`Erreur incrémentation compteur ${id}:`, error.message);
