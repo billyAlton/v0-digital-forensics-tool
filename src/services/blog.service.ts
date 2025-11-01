@@ -33,7 +33,7 @@ export const BlogPostService = {
         success: boolean;
         data: BlogPost[];
         pagination: any;
-      }>("/blog/posts", { params });
+      }>("/blogs/blog/posts", { params });
       return response.data;
     } catch (error: any) {
       console.error("Erreur chargement articles:", error.message);
@@ -47,7 +47,7 @@ export const BlogPostService = {
       const response = await apiClient.get<{
         success: boolean;
         data: BlogPost;
-      }>(`/blog/posts/${id}`);
+      }>(`/blogs/blog/posts/${id}`);
       return response.data.data;
     } catch (error: any) {
       console.error(`Erreur chargement article ${id}:`, error.message);
@@ -61,7 +61,7 @@ export const BlogPostService = {
       const response = await apiClient.get<{
         success: boolean;
         data: BlogPost;
-      }>(`/blog/posts/slug/${slug}`);
+      }>(`/blogs/blog/posts/slug/${slug}`);
       return response.data.data;
     } catch (error: any) {
       console.error(`Erreur chargement article ${slug}:`, error.message);
@@ -76,7 +76,7 @@ export const BlogPostService = {
         success: boolean;
         data: BlogPost;
         message: string;
-      }>("/blog/posts", data);
+      }>("/blogs/blog/posts", data);
       return response.data.data;
     } catch (error: any) {
       console.error("Erreur création article:", error.message);
@@ -91,7 +91,7 @@ export const BlogPostService = {
         success: boolean;
         data: BlogPost;
         message: string;
-      }>(`/blog/posts/${id}`, data);
+      }>(`/blogs/blog/posts/${id}`, data);
       return response.data.data;
     } catch (error: any) {
       console.error(`Erreur mise à jour article ${id}:`, error.message);
@@ -102,7 +102,7 @@ export const BlogPostService = {
   // 🔴 Supprimer un article
   async deleteBlogPost(id: string): Promise<void> {
     try {
-      await apiClient.delete(`/blog/posts/${id}`);
+      await apiClient.delete(`/blogs/blog/posts/${id}`);
     } catch (error: any) {
       console.error(`Erreur suppression article ${id}:`, error.message);
       throw error;
@@ -121,7 +121,7 @@ export const BlogPostService = {
         success: boolean;
         data: BlogPost[];
         pagination: any;
-      }>("/blog/posts/published", { params });
+      }>("/blogs/blog/posts/published", { params });
       return response.data;
     } catch (error: any) {
       console.error("Erreur chargement articles publiés:", error.message);
@@ -138,7 +138,7 @@ export const BlogPostService = {
       const response = await apiClient.get<{
         success: boolean;
         available: boolean;
-      }>("/blog/posts/check-slug", { params });
+      }>("/blogs/blog/posts/check-slug", { params });
       
       return response.data.available;
     } catch (error: any) {
