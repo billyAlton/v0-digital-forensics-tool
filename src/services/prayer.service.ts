@@ -42,7 +42,7 @@ export const PrayerRequestService = {
       const response = await apiClient.get<{
         success: boolean;
         data: PrayerRequest;
-      }>(`/prayer-requests/${id}`);
+      }>(`/prayers/prayer-requests/${id}`);
       return response.data.data;
     } catch (error: any) {
       console.error(`Erreur chargement demande ${id}:`, error.message);
