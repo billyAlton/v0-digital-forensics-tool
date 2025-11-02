@@ -7,10 +7,97 @@ import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
-import { Calendar, MapPin, Users, Edit, ArrowLeft } from "lucide-react"
+import { Calendar, MapPin, Users, Edit, ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react"
 import { DeleteEventButton } from "@/components/delete-event-button"
 import { EventService, Event } from "@/src/services/event.service"
 import { Skeleton } from "@/components/ui/skeleton"
+import { BASE_URL } from "@/lib/apiCaller"
+
+// Composant Carousel pour les images
+function ImageCarousel({ images, title }: { images: string[], title: string }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const baseMediaUrl = BASE_URL.replace("/api", "");
+
+  if (!images || images.length === 0) {
+    return (
+      <div className="w-full h-64 bg-gray-100 flex items-center justify-center rounded-lg">
+        <span className="text-gray-400">Pas d'image</span>
+      </div>
+    );
+  }
+
+  const goToPrevious = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  };
+
+  const goToNext = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+  };
+
+  return (
+    <div className="relative w-full h-64 bg-gray-900 rounded-lg overflow-hidden group">
+      {/* Image */}
+      <img
+        src={`${baseMediaUrl}${images[currentIndex]}`}
+        alt={`${title} - Image ${currentIndex + 1}`}
+        className="w-full h-full object-cover transition-opacity duration-300"
+      />
+
+      {/* Overlay gradient */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+
+      {/* Navigation buttons - visible on hover */}
+      {images.length > 1 && (
+        <>
+          <button
+            onClick={goToPrevious}
+            className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            aria-label="Image précédente"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <button
+            onClick={goToNext}
+            className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            aria-label="Image suivante"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </>
+      )}
+
+      {/* Indicators */}
+      {images.length > 1 && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+          {images.map((_, index) => (
+            <button
+              key={index}
+              onClick={(e) => {
+                e.stopPropagation();
+                setCurrentIndex(index);
+              }}
+              className={`w-2 h-2 rounded-full transition-all ${
+                index === currentIndex
+                  ? "bg-white w-6"
+                  : "bg-white/50 hover:bg-white/75"
+              }`}
+              aria-label={`Aller à l'image ${index + 1}`}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Counter */}
+      {images.length > 1 && (
+        <div className="absolute top-3 right-3 bg-black/60 text-white px-2 py-1 rounded text-sm font-medium">
+          {currentIndex + 1} / {images.length}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function EventDetailPage({
   params,
@@ -103,6 +190,18 @@ export default function EventDetailPage({
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
+          {/* Section Images */}
+          {event.images && event.images.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Galerie d'images ({event.images.length})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ImageCarousel images={event.images} title={event.title} />
+              </CardContent>
+            </Card>
+          )}
+
           <Card>
             <CardHeader>
               <CardTitle>Détails de l'événement</CardTitle>
@@ -169,19 +268,12 @@ export default function EventDetailPage({
           </Card> */}
         </div>
 
-        <div>
+        <div className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Statistiques</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-gray-600" />
-                  <span className="text-sm text-gray-600">Inscrits</span>
-                </div>
-                <span className="text-2xl font-bold">{event.max_attendees || 0}</span>
-              </div>
               {event.max_attendees && (
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -191,10 +283,17 @@ export default function EventDetailPage({
                   <span className="text-2xl font-bold">{event.max_attendees}</span>
                 </div>
               )}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-gray-600" />
+                  <span className="text-sm text-gray-600">Images</span>
+                </div>
+                <span className="text-2xl font-bold">{event.images?.length || 0}</span>
+              </div>
             </CardContent>
           </Card>
 
-          <Card className="mt-6">
+          <Card>
             <CardHeader>
               <CardTitle>Informations</CardTitle>
             </CardHeader>
@@ -225,6 +324,10 @@ export default function EventDetailPage({
                   </span>
                 </div>
               )}
+              <div className="flex items-center justify-between">
+                <span className="text-sm">Images</span>
+                <span className="font-medium">{event.images?.length || 0}</span>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -258,6 +361,16 @@ function EventDetailSkeleton() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
+          {/* Skeleton pour la galerie d'images */}
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-48" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-64 w-full rounded-lg" />
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <Skeleton className="h-6 w-48" />
@@ -283,15 +396,6 @@ function EventDetailSkeleton() {
               </div>
             </CardContent>
           </Card>
-
-          <Card>
-            <CardHeader>
-              <Skeleton className="h-6 w-40" />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-20 w-full" />
-            </CardContent>
-          </Card>
         </div>
 
         <div className="space-y-6">
@@ -310,6 +414,7 @@ function EventDetailSkeleton() {
               <Skeleton className="h-6 w-32" />
             </CardHeader>
             <CardContent className="space-y-3">
+              <Skeleton className="h-6 w-full" />
               <Skeleton className="h-6 w-full" />
               <Skeleton className="h-6 w-full" />
               <Skeleton className="h-6 w-full" />

@@ -4,12 +4,98 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { Plus, Calendar, MapPin, Users, Edit, Eye } from "lucide-react";
+import { Plus, Calendar, MapPin, Users, Edit, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { DeleteEventButton } from "@/components/delete-event-button";
 import { EventService, Event } from "@/src/services/event.service";
 import { BASE_URL } from "@/lib/apiCaller";
 import { Skeleton } from "@/components/ui/skeleton";
+
+// Composant Carousel pour les images
+function ImageCarousel({ images, title }: { images: string[], title: string }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const baseMediaUrl = BASE_URL.replace("/api", "");
+
+  if (!images || images.length === 0) {
+    return (
+      <div className="w-full h-48 bg-gray-100 flex items-center justify-center rounded-t-lg md:rounded-l-lg md:rounded-t-none">
+        <span className="text-gray-400">Pas d'image</span>
+      </div>
+    );
+  }
+
+  const goToPrevious = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  };
+
+  const goToNext = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+  };
+
+  return (
+    <div className="relative w-full h-48 bg-gray-900 rounded-t-lg md:rounded-l-lg md:rounded-t-none overflow-hidden group">
+      {/* Image */}
+      <img
+        src={`${baseMediaUrl}${images[currentIndex]}`}
+        alt={`${title} - Image ${currentIndex + 1}`}
+        className="w-full h-full object-cover transition-opacity duration-300"
+      />
+
+      {/* Overlay gradient */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+
+      {/* Navigation buttons - visible on hover */}
+      {images.length > 1 && (
+        <>
+          <button
+            onClick={goToPrevious}
+            className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            aria-label="Image précédente"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <button
+            onClick={goToNext}
+            className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            aria-label="Image suivante"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </>
+      )}
+
+      {/* Indicators */}
+      {images.length > 1 && (
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1">
+          {images.map((_, index) => (
+            <button
+              key={index}
+              onClick={(e) => {
+                e.stopPropagation();
+                setCurrentIndex(index);
+              }}
+              className={`w-1.5 h-1.5 rounded-full transition-all ${
+                index === currentIndex
+                  ? "bg-white w-4"
+                  : "bg-white/50 hover:bg-white/75"
+              }`}
+              aria-label={`Aller à l'image ${index + 1}`}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Counter */}
+      {images.length > 1 && (
+        <div className="absolute top-2 right-2 bg-black/60 text-white px-1.5 py-0.5 rounded text-xs font-medium">
+          {currentIndex + 1} / {images.length}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
@@ -87,21 +173,15 @@ export default function EventsPage() {
       ) : (
         <div className="grid gap-6">
           {events.map((event) => (
-            <Card key={event._id} className="hover:shadow-lg transition-shadow">
+            <Card key={event._id} className="hover:shadow-lg transition-shadow overflow-hidden">
               <div className="flex flex-col md:flex-row">
-                {/* Image */}
-                {event.images && event.images.length > 0 && (
-                  <div className="md:w-1/3">
-                    <img
-                      src={`${baseMediaUrl}${event.images[0]}`}
-                      alt={event.title}
-                      className="w-full h-48 md:h-full object-cover rounded-l-lg"
-                    />
-                  </div>
-                )}
+                {/* Section Image avec Carousel */}
+                <div className="md:w-1/3">
+                  <ImageCarousel images={event.images || []} title={event.title} />
+                </div>
                 
-                {/* Content */}
-                <div className={`flex-1 ${event.images && event.images.length > 0 ? 'md:w-2/3' : 'w-full'}`}>
+                {/* Section Contenu */}
+                <div className="flex-1 md:w-2/3">
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -195,11 +275,11 @@ function EventsSkeleton() {
 
       <div className="grid gap-6">
         {[...Array(3)].map((_, index) => (
-          <Card key={index} className="hover:shadow-lg transition-shadow">
+          <Card key={index} className="hover:shadow-lg transition-shadow overflow-hidden">
             <div className="flex flex-col md:flex-row">
-              {/* Skeleton Image */}
+              {/* Skeleton Image avec Carousel */}
               <div className="md:w-1/3">
-                <Skeleton className="w-full h-48 md:h-full rounded-l-lg" />
+                <Skeleton className="w-full h-48 rounded-t-lg md:rounded-l-lg md:rounded-t-none" />
               </div>
               
               {/* Skeleton Content */}
