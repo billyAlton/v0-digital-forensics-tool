@@ -31,7 +31,7 @@ export const EventService = {
   // 🟣 Récupérer un événement par ID
   async getEventById(id: string): Promise<Event> {
     try {
-      const response =  await apiClient.get<Event>(`/events/${id}`);
+      const response =  await apiClient.get<Event>(`/events/getone/${id}`);
       return response.data;
     } catch (error: any) {
       console.error(
