@@ -72,7 +72,7 @@ export const PrayerRequestService = {
         success: boolean;
         data: PrayerRequest;
         message: string;
-      }>(`/prayer-requests/${id}`, data);
+      }>(`/prayers/prayer-requests/${id}`, data);
       return response.data.data;
     } catch (error: any) {
       console.error(`Erreur mise à jour demande ${id}:`, error.message);

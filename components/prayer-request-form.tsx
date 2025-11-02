@@ -106,7 +106,7 @@ export function PrayerRequestForm({ prayer }: PrayerRequestFormProps) {
     }
 
     if (prayer) {
-      await PrayerRequestService.updatePrayerRequest(prayer.id, formData)
+      await PrayerRequestService.updatePrayerRequest(prayer._id, formData)
       toast.success("Demande de prière mise à jour avec succès")
     } else {
       await PrayerRequestService.createPrayerRequest(formData)
