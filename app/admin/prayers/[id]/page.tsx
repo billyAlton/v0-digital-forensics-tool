@@ -1,59 +1,66 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { format } from "date-fns"
-import { Calendar, Edit, Heart, User } from "lucide-react"
-import { DeletePrayerRequestButton } from "@/components/delete-prayer-request-button"
-import { Skeleton } from "@/components/ui/skeleton"
-import { PrayerRequestService, type PrayerRequest } from "@/src/services/prayer.service";
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { format } from "date-fns";
+import { ArrowLeft, Calendar, Edit, Heart, User } from "lucide-react";
+import { DeletePrayerRequestButton } from "@/components/delete-prayer-request-button";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  PrayerRequestService,
+  type PrayerRequest,
+} from "@/src/services/prayer.service";
 
 export default function PrayerRequestDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }>;
 }) {
-  const [prayer, setPrayer] = useState<PrayerRequest | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const router = useRouter()
+  const [prayer, setPrayer] = useState<PrayerRequest | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const loadPrayerRequest = async () => {
       try {
-        setLoading(true)
-        const { id } = await params
-        const prayerData = await PrayerRequestService.getPrayerRequestById(id)
-        setPrayer(prayerData)
+        setLoading(true);
+        const { id } = await params;
+        const prayerData = await PrayerRequestService.getPrayerRequestById(id);
+        setPrayer(prayerData);
       } catch (err: any) {
-        console.error("Erreur chargement demande:", err.message)
-        setError("Impossible de charger la demande de prière")
+        console.error("Erreur chargement demande:", err.message);
+        setError("Impossible de charger la demande de prière");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    loadPrayerRequest()
-  }, [params])
+    loadPrayerRequest();
+  }, [params]);
 
   if (loading) {
-    return <PrayerDetailSkeleton />
+    return <PrayerDetailSkeleton />;
   }
 
   if (error || !prayer) {
     return (
       <div className="flex flex-col items-center justify-center min-h-96">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Demande non trouvée</h2>
-        <p className="text-gray-600 mb-6">{error || "La demande de prière n'existe pas"}</p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          Demande non trouvée
+        </h2>
+        <p className="text-gray-600 mb-6">
+          {error || "La demande de prière n'existe pas"}
+        </p>
         <Button asChild>
           <Link href="/admin/prayers">Retour aux demandes</Link>
         </Button>
       </div>
-    )
+    );
   }
 
   return (
@@ -63,7 +70,13 @@ export default function PrayerRequestDetailPage({
           <h1 className="text-3xl font-bold text-gray-900">{prayer.title}</h1>
           <div className="flex gap-2 mt-2">
             <Badge
-              variant={prayer.status === "active" ? "default" : prayer.status === "answered" ? "secondary" : "outline"}
+              variant={
+                prayer.status === "active"
+                  ? "default"
+                  : prayer.status === "answered"
+                  ? "secondary"
+                  : "outline"
+              }
             >
               {prayer.status}
             </Badge>
@@ -73,18 +86,24 @@ export default function PrayerRequestDetailPage({
         </div>
         <div className="flex gap-2">
           <Button asChild variant="outline">
+            <Link href="/admin/prayers">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Retour
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
             <Link href={`/admin/prayers/${prayer._id}/edit`}>
               <Edit className="mr-2 h-4 w-4" />
               Modifier
             </Link>
           </Button>
-          <DeletePrayerRequestButton 
-            prayerId={prayer._id} 
+          <DeletePrayerRequestButton
+            prayerId={prayer._id}
+            prayerTitle={prayer.title}
             onDelete={() => router.push("/admin/prayers")}
           />
         </div>
       </div>
-
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
           <Card>
@@ -93,12 +112,18 @@ export default function PrayerRequestDetailPage({
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <h3 className="font-semibold text-gray-900 mb-2">Description</h3>
-                <p className="text-gray-700 whitespace-pre-wrap">{prayer.description}</p>
+                <h3 className="font-semibold text-gray-900 mb-2">
+                  Description
+                </h3>
+                <p className="text-gray-700 whitespace-pre-wrap">
+                  {prayer.description}
+                </p>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Demandeur</h3>
+                  <h3 className="font-semibold text-gray-900 mb-2">
+                    Demandeur
+                  </h3>
                   <div className="flex items-center gap-2 text-gray-700">
                     <User className="h-4 w-4" />
                     {prayer.is_anonymous ? (
@@ -109,7 +134,9 @@ export default function PrayerRequestDetailPage({
                   </div>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Soumis le</h3>
+                  <h3 className="font-semibold text-gray-900 mb-2">
+                    Soumis le
+                  </h3>
                   <div className="flex items-center gap-2 text-gray-700">
                     <Calendar className="h-4 w-4" />
                     {format(new Date(prayer.createdAt), "PPP")}
@@ -157,9 +184,13 @@ export default function PrayerRequestDetailPage({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Heart className="h-5 w-5 text-red-500" />
-                  <span className="text-sm text-gray-600">Total des prières</span>
+                  <span className="text-sm text-gray-600">
+                    Total des prières
+                  </span>
                 </div>
-                <span className="text-2xl font-bold">{prayer.prayer_count}</span>
+                <span className="text-2xl font-bold">
+                  {prayer.prayer_count}
+                </span>
               </div>
             </CardContent>
           </Card>
@@ -186,7 +217,7 @@ export default function PrayerRequestDetailPage({
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // Composant Skeleton pour le chargement
@@ -263,5 +294,5 @@ function PrayerDetailSkeleton() {
         </div>
       </div>
     </div>
-  )
+  );
 }

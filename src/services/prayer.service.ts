@@ -83,7 +83,7 @@ export const PrayerRequestService = {
   // 🔴 Supprimer une demande de prière
   async deletePrayerRequest(id: string): Promise<void> {
     try {
-      await apiClient.delete(`/prayer-requests/${id}`);
+      await apiClient.delete(`/prayers/prayer-requests/${id}`);
     } catch (error: any) {
       console.error(`Erreur suppression demande ${id}:`, error.message);
       throw error;

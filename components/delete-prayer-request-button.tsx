@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import {
   AlertDialog,
@@ -16,49 +15,66 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Trash2 } from "lucide-react"
+import { PrayerRequestService, type PrayerRequest } from "@/src/services/prayer.service";
 
-export function DeletePrayerRequestButton({ prayerId }: { prayerId: string }) {
+interface DeletePrayerRequestButtonProps {
+  prayerId: string
+  onDelete?: () => void
+}
+
+export function DeletePrayerRequestButton({ prayerId, onDelete }: DeletePrayerRequestButtonProps) {
   const router = useRouter()
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
 
   const handleDelete = async () => {
     setIsDeleting(true)
-    const supabase = createClient()
 
     try {
-      const { error } = await supabase.from("prayer_requests").delete().eq("id", prayerId)
-
-      if (error) throw error
-
-      router.push("/admin/prayers")
-      router.refresh()
-    } catch (error) {
-      console.error("Error deleting prayer request:", error)
-      alert("Failed to delete prayer request")
+      await PrayerRequestService.deletePrayerRequest(prayerId)
+      
+      // Fermer la dialog
+      setIsOpen(false)
+      
+      // Appeler le callback personnalisé si fourni
+      if (onDelete) {
+        onDelete()
+      } else {
+        // Redirection par défaut
+        router.push("/admin/prayers")
+        router.refresh()
+      }
+    } catch (error: any) {
+      console.error("Erreur suppression demande:", error.message)
+      alert("Échec de la suppression de la demande de prière")
     } finally {
       setIsDeleting(false)
     }
   }
 
   return (
-    <AlertDialog>
+    <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
       <AlertDialogTrigger asChild>
         <Button variant="destructive">
           <Trash2 className="mr-2 h-4 w-4" />
-          Delete
+          Supprimer
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+          <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete the prayer request and all prayer interactions.
+            Cette action est irréversible. La demande de prière et toutes les interactions associées seront définitivement supprimées.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={handleDelete} disabled={isDeleting} className="bg-red-600 hover:bg-red-700">
-            {isDeleting ? "Deleting..." : "Delete"}
+          <AlertDialogCancel disabled={isDeleting}>Annuler</AlertDialogCancel>
+          <AlertDialogAction 
+            onClick={handleDelete} 
+            disabled={isDeleting} 
+            className="bg-red-600 hover:bg-red-700"
+          >
+            {isDeleting ? "Suppression..." : "Supprimer"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
