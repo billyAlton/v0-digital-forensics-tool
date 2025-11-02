@@ -4,12 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { Plus, Calendar, MapPin, Users, Edit, Eye, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Calendar, MapPin, Users, Edit, Eye, ChevronLeft, ChevronRight, Filter, X } from "lucide-react";
 import { format } from "date-fns";
 import { DeleteEventButton } from "@/components/delete-event-button";
 import { EventService, Event } from "@/src/services/event.service";
 import { BASE_URL } from "@/lib/apiCaller";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // Composant Carousel pour les images
 function ImageCarousel({ images, title }: { images: string[], title: string }) {
@@ -99,8 +101,12 @@ function ImageCarousel({ images, title }: { images: string[], title: string }) {
 
 export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
+  const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [eventTypeFilter, setEventTypeFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const baseMediaUrl = BASE_URL.replace("/api", "");
 
   const fetchEvents = async () => {
@@ -108,6 +114,7 @@ export default function EventsPage() {
       setLoading(true);
       const data = await EventService.getAllEvents();
       setEvents(data);
+      setFilteredEvents(data);
     } catch (err: any) {
       setError(err.message || "Erreur lors du chargement des événements");
     } finally {
@@ -118,6 +125,45 @@ export default function EventsPage() {
   useEffect(() => {
     fetchEvents();
   }, []);
+
+  // Appliquer les filtres
+  useEffect(() => {
+    let filtered = events;
+
+    // Filtre par recherche
+    if (searchTerm) {
+      filtered = filtered.filter(event =>
+        event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        event.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        event.location?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Filtre par type d'événement
+    if (eventTypeFilter !== "all") {
+      filtered = filtered.filter(event => event.event_type === eventTypeFilter);
+    }
+
+    // Filtre par statut
+    if (statusFilter !== "all") {
+      const now = new Date();
+      if (statusFilter === "upcoming") {
+        filtered = filtered.filter(event => new Date(event.start_date) > now);
+      } else if (statusFilter === "past") {
+        filtered = filtered.filter(event => new Date(event.start_date) <= now);
+      }
+    }
+
+    setFilteredEvents(filtered);
+  }, [events, searchTerm, eventTypeFilter, statusFilter]);
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setEventTypeFilter("all");
+    setStatusFilter("all");
+  };
+
+  const hasActiveFilters = searchTerm || eventTypeFilter !== "all" || statusFilter !== "all";
 
   if (loading) {
     return <EventsSkeleton />;
@@ -152,27 +198,104 @@ export default function EventsPage() {
         </Button>
       </div>
 
-      {events.length === 0 ? (
+      {/* Section Filtres */}
+      <Card className="mb-6">
+        <CardContent className="pt-6">
+          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-end">
+            {/* Recherche */}
+            <div className="flex-1 w-full">
+              <label className="text-sm font-medium mb-2 block">Rechercher</label>
+              <Input
+                placeholder="Rechercher par titre, description ou lieu..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full"
+              />
+            </div>
+
+            {/* Filtre par type */}
+            <div className="w-full lg:w-48">
+              <label className="text-sm font-medium mb-2 block">Type d'événement</label>
+              <Select value={eventTypeFilter} onValueChange={setEventTypeFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Tous les types" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les types</SelectItem>
+                  <SelectItem value="service">Service</SelectItem>
+                  <SelectItem value="meeting">Réunion</SelectItem>
+                  <SelectItem value="special">Événement spécial</SelectItem>
+                  <SelectItem value="youth">Jeunesse</SelectItem>
+                  <SelectItem value="prayer">Prières</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Filtre par statut */}
+            <div className="w-full lg:w-48">
+              <label className="text-sm font-medium mb-2 block">Statut</label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Tous les statuts" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les statuts</SelectItem>
+                  <SelectItem value="upcoming">À venir</SelectItem>
+                  <SelectItem value="past">Terminés</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Bouton réinitialiser */}
+            {hasActiveFilters && (
+              <Button variant="outline" onClick={clearFilters} className="whitespace-nowrap">
+                <X className="h-4 w-4 mr-2" />
+                Réinitialiser
+              </Button>
+            )}
+          </div>
+
+          {/* Résultats du filtrage */}
+          <div className="mt-4 flex items-center justify-between">
+            <p className="text-sm text-gray-600">
+              {filteredEvents.length} événement{filteredEvents.length > 1 ? 's' : ''} trouvé{filteredEvents.length > 1 ? 's' : ''}
+              {hasActiveFilters && " (filtrés)"}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {filteredEvents.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Calendar className="h-12 w-12 text-gray-400 mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Aucun événement
+              {hasActiveFilters ? "Aucun événement correspond aux filtres" : "Aucun événement"}
             </h3>
             <p className="text-gray-600 mb-4">
-              Commencez par créer votre premier événement
+              {hasActiveFilters 
+                ? "Essayez de modifier vos critères de recherche" 
+                : "Commencez par créer votre premier événement"
+              }
             </p>
-            <Button asChild>
-              <Link href="/admin/events/new">
-                <Plus className="mr-2 h-4 w-4" />
-                Ajouter un événement
-              </Link>
-            </Button>
+            {hasActiveFilters ? (
+              <Button variant="outline" onClick={clearFilters}>
+                <Filter className="mr-2 h-4 w-4" />
+                Réinitialiser les filtres
+              </Button>
+            ) : (
+              <Button asChild>
+                <Link href="/admin/events/new">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Ajouter un événement
+                </Link>
+              </Button>
+            )}
           </CardContent>
         </Card>
       ) : (
         <div className="grid gap-6">
-          {events.map((event) => (
+          {filteredEvents.map((event) => (
             <Card key={event._id} className="hover:shadow-lg transition-shadow overflow-hidden">
               <div className="flex flex-col md:flex-row">
                 {/* Section Image avec Carousel */}
@@ -247,7 +370,9 @@ export default function EventsPage() {
                       </Button>
                       <DeleteEventButton 
                         eventId={event._id!} 
+                        eventTitle={event.title}
                         onDelete={fetchEvents}
+                        size="sm"
                       />
                     </div>
                   </CardContent>
@@ -272,6 +397,17 @@ function EventsSkeleton() {
         </div>
         <Skeleton className="h-10 w-40" />
       </div>
+
+      {/* Skeleton pour les filtres */}
+      <Card className="mb-6">
+        <CardContent className="pt-6">
+          <div className="flex flex-col lg:flex-row gap-4">
+            <Skeleton className="h-10 flex-1" />
+            <Skeleton className="h-10 w-48" />
+            <Skeleton className="h-10 w-48" />
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-6">
         {[...Array(3)].map((_, index) => (
