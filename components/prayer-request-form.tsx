@@ -12,6 +12,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent } from "@/components/ui/card"
+import { PrayerRequestService } from "@/src/services/prayer.service"
+import { toast } from "sonner"
+
 
 interface PrayerRequestFormProps {
   prayer?: {
@@ -39,7 +42,7 @@ export function PrayerRequestForm({ prayer }: PrayerRequestFormProps) {
     is_public: prayer?.is_public !== undefined ? prayer.is_public : true,
   })
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  /* const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setError(null)
@@ -83,8 +86,42 @@ export function PrayerRequestForm({ prayer }: PrayerRequestFormProps) {
     } finally {
       setIsLoading(false)
     }
-  }
+  } */
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault()
+  setIsLoading(true)
+  setError(null)
 
+  try {
+/*     const { data: { user }, error } = await supabase.auth.getUser()
+    if (error || !user) {
+      setError("Vous devez être connecté")
+      setIsLoading(false)
+      return
+    } */
+
+    const prayerData = {
+      ...formData,
+      requester_name: formData.is_anonymous ? null : formData.requester_name || null,
+    }
+
+    if (prayer) {
+      await PrayerRequestService.updatePrayerRequest(prayer._id, formData)
+      toast.success("Demande de prière mise à jour avec succès")
+    } else {
+      await PrayerRequestService.createPrayerRequest(formData)
+      toast.success("Demande de prière créée avec succès")
+    }
+
+    router.push("/admin/prayers")
+    router.refresh()
+  } catch (err: any) {
+    setError(err.message || "Une erreur est survenue")
+    toast.error("Échec de l'envoi de la demande")
+  } finally {
+    setIsLoading(false)
+  }
+}
   return (
     <Card>
       <CardContent className="pt-6">

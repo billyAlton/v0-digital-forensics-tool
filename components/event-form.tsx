@@ -107,6 +107,7 @@ export const EventForm: React.FC<EventFormProps> = ({ event, onSuccess }) => {
       }
 
       onSuccess?.(); // appel du callback pour rafraîchir la liste ou fermer le formulaire
+      router.push("/admin/events");
       router.refresh();
     } catch (err: any) {
       setError(err.message || "An error occurred");

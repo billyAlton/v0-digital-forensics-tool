@@ -32,6 +32,18 @@ export const SermonService = {
       throw error;
     }
   },
+  async getAllSermonsCount(): Promise<any> {
+    try {
+      const response = await apiClient.get<any>("/sermons/sermons");
+      return response.data?.count;
+    } catch (error: any) {
+      console.error(
+        "Erreur lors du chargement des sermons :",
+        error.message
+      );
+      throw error;
+    }
+  },
 
   // 🟣 Récupérer un sermon par ID
   async getSermonById(id: string): Promise<any> {
