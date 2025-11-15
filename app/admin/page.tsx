@@ -111,6 +111,14 @@ export default function AdminDashboard() {
           color: "text-indigo-600",
           bg: "bg-indigo-100",
         },
+        // Dans votre navigation admin
+        {
+          name: "Resources",
+          value: volunteersCount,
+          icon: Users,
+          color: "text-indigo-600",
+          bg: "bg-indigo-100",
+        },
       ];
 
       setStats(dashboardStats);
