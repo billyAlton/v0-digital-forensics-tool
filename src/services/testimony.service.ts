@@ -99,8 +99,9 @@ export const TestimonyService = {
   // 🟣 Récupérer un témoignage par ID (admin)
   async getTestimonyById(id: string): Promise<Testimony> {
     try {
-      const response = await apiClient.get<Testimony>(`/testimonies/admin/${id}`);
-      return response.data;
+      const response = await apiClient.get<any>(`/testimonies/admin/${id}`);
+      console.log("===== ", response.data)
+      return response.data.data;
     } catch (error: any) {
       console.error(
         `Erreur lors du chargement du témoignage ${id} :`,

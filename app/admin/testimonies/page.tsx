@@ -347,12 +347,12 @@ export default function TestimoniesPage() {
                           Voir les détails
                         </Link>
                       </Button>
-                      <Button asChild size="sm" variant="outline" className="flex-1">
+                      {/* <Button asChild size="sm" variant="outline" className="flex-1">
                         <Link href={`/admin/testimonies/${testimony._id}/edit`}>
                           <Edit className="mr-2 h-4 w-4" />
                           Modifier
                         </Link>
-                      </Button>
+                      </Button> */}
                     </div>
                   </CardContent>
                 </div>

@@ -4,13 +4,47 @@ import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Calendar, User, Mail, MapPin, Heart, Edit } from "lucide-react";
+import { 
+  ArrowLeft, 
+  Calendar, 
+  User, 
+  Mail, 
+  MapPin, 
+  Heart, 
+  Edit, 
+  Trash2,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Archive
+} from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { TestimonyService, Testimony } from "@/src/services/testimony.service";
 import { BASE_URL } from "@/lib/apiCaller";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
+
+// Import des composants UI supplémentaires
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { toast } from "sonner"
 
 // Composants réutilisables depuis la page principale
 function StatusBadge({ status }: { status: string }) {
@@ -57,6 +91,8 @@ export default function TestimonyDetailPage() {
   const [testimony, setTestimony] = useState<Testimony | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const testimonyId = params.id as string;
 
@@ -77,6 +113,78 @@ export default function TestimonyDetailPage() {
       fetchTestimony();
     }
   }, [testimonyId]);
+
+  const handleStatusUpdate = async (newStatus: string) => {
+    if (!testimony) return;
+
+    try {
+      setIsUpdating(true);
+      const updatedTestimony = await TestimonyService.updateTestimonyStatus(testimonyId, {
+        status: newStatus
+      });
+      
+      setTestimony(updatedTestimony);
+      
+      toast(`Le témoignage a été ${getStatusLabel(newStatus)} avec succès.`);
+
+    } catch (err: any) {
+      toast(`Le témoignage a rencontrer une erreur`);
+
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      setIsUpdating(true);
+      await TestimonyService.deleteTestimony(testimonyId);
+      
+      toast(`Le témoignage a été supprime avec succès.`);
+
+      
+      router.push("/admin/testimonies");
+    } catch (err: any) {
+      toast(`Erreur de suppression`);
+
+    } finally {
+      setIsUpdating(false);
+      setIsDeleteDialogOpen(false);
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    const labels: { [key: string]: string } = {
+      pending: "mis en attente",
+      approved: "approuvé",
+      scheduled: "programmé",
+      archived: "archivé",
+      rejected: "rejeté"
+    };
+    return labels[status] || status;
+  };
+
+  const toggleFeatured = async () => {
+    if (!testimony) return;
+
+    try {
+      setIsUpdating(true);
+      const updatedTestimony = await TestimonyService.updateTestimonyStatus(testimonyId, {
+        status: testimony.status,
+        is_featured: !testimony.is_featured
+      });
+      
+      setTestimony(updatedTestimony);
+      
+      toast(`Le témoignage a été mis en avant avec succès.`);
+
+    } catch (err: any) {
+      toast(`Erreur de modification.`);
+
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   if (loading) {
     return <TestimonyDetailSkeleton />;
@@ -115,12 +223,88 @@ export default function TestimonyDetailPage() {
             <p className="text-gray-600 mt-1">Informations complètes du témoignage</p>
           </div>
         </div>
-        <Button asChild>
-          <Link href={`/admin/testimonies/${testimonyId}/edit`}>
-            <Edit className="mr-2 h-4 w-4" />
-            Modifier
-          </Link>
-        </Button>
+        
+        <div className="flex gap-2">
+          {/* Menu déroulant pour les actions rapides */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" disabled={isUpdating}>
+                <Edit className="mr-2 h-4 w-4" />
+                Actions
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>Modifier le statut</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              
+              <DropdownMenuItem 
+                onClick={() => handleStatusUpdate('approved')}
+                disabled={testimony.status === 'approved' || isUpdating}
+              >
+                <CheckCircle className="mr-2 h-4 w-4 text-green-600" />
+                Approuver
+              </DropdownMenuItem>
+              
+              <DropdownMenuItem 
+                onClick={() => handleStatusUpdate('pending')}
+                disabled={testimony.status === 'pending' || isUpdating}
+              >
+                <Clock className="mr-2 h-4 w-4 text-yellow-600" />
+                Mettre en attente
+              </DropdownMenuItem>
+              
+              <DropdownMenuItem 
+                onClick={() => handleStatusUpdate('rejected')}
+                disabled={testimony.status === 'rejected' || isUpdating}
+              >
+                <XCircle className="mr-2 h-4 w-4 text-red-600" />
+                Rejeter
+              </DropdownMenuItem>
+              
+              <DropdownMenuItem 
+                onClick={() => handleStatusUpdate('archived')}
+                disabled={testimony.status === 'archived' || isUpdating}
+              >
+                <Archive className="mr-2 h-4 w-4 text-gray-600" />
+                Archiver
+              </DropdownMenuItem>
+              
+              <DropdownMenuSeparator />
+              
+              <DropdownMenuItem onClick={toggleFeatured} disabled={isUpdating}>
+                {testimony.is_featured ? (
+                  <>
+                    <XCircle className="mr-2 h-4 w-4" />
+                    Retirer des favoris
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    Mettre en avant
+                  </>
+                )}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Bouton d'édition complète */}
+          {/* <Button asChild>
+            <Link href={`/admin/testimonies/${testimonyId}/edit`}>
+              <Edit className="mr-2 h-4 w-4" />
+              Modifier
+            </Link>
+          </Button> */}
+
+          {/* Bouton de suppression */}
+          <Button 
+            variant="destructive" 
+            onClick={() => setIsDeleteDialogOpen(true)}
+            disabled={isUpdating}
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Supprimer
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -161,7 +345,7 @@ export default function TestimonyDetailPage() {
                     {testimony.images.map((image, index) => (
                       <div key={index} className="aspect-square rounded-lg overflow-hidden border">
                         <img
-                          src={`${baseMediaUrl}${image}`}
+                          src={`${image}`}
                           alt={`${testimony.title} - Image ${index + 1}`}
                           className="w-full h-full object-cover hover:scale-105 transition-transform"
                         />
@@ -220,7 +404,7 @@ export default function TestimonyDetailPage() {
                 <Calendar className="h-5 w-5 text-gray-400" />
                 <div>
                   <p className="font-medium text-gray-900">
-                    {format(new Date(testimony.createdAt!), "PPP", { locale: fr })}
+                    {testimony.createdAt && format(new Date(testimony.createdAt), "PPP", { locale: fr })}
                   </p>
                   <p className="text-sm text-gray-500">Date de soumission</p>
                 </div>
@@ -261,6 +445,28 @@ export default function TestimonyDetailPage() {
           </Card>
         </div>
       </div>
+
+      {/* Dialog de confirmation de suppression */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Êtes-vous sûr de vouloir supprimer ce témoignage ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action est irréversible. Le témoignage "{testimony.title}" sera définitivement supprimé.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isUpdating}>Annuler</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              disabled={isUpdating}
+              className="bg-destructive text-default-foreground hover:bg-destructive/90"
+            >
+              {isUpdating ? "Suppression..." : "Supprimer"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -277,7 +483,11 @@ function TestimonyDetailSkeleton() {
             <Skeleton className="h-5 w-48" />
           </div>
         </div>
-        <Skeleton className="h-10 w-32" />
+        <div className="flex gap-2">
+          <Skeleton className="h-10 w-32" />
+          <Skeleton className="h-10 w-32" />
+          <Skeleton className="h-10 w-32" />
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -335,3 +545,5 @@ function TestimonyDetailSkeleton() {
     </div>
   );
 }
+
+
