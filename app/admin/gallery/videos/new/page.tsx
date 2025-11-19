@@ -82,7 +82,7 @@ export default function NewVideoPage() {
       }
 
       await GalleryService.createVideo(cleanedData)
-      router.push("/admin/galerie")
+      router.push("/admin/gallery")
     } catch (err: any) {
       setError(err.message || "Erreur lors de la création de la vidéo")
       console.error("Erreur:", err)
@@ -111,7 +111,7 @@ export default function NewVideoPage() {
       {/* En-tête */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" onClick={() => router.push("/admin/galerie")}>
+          <Button variant="outline" size="sm" onClick={() => router.push("/admin/gallery")}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Retour
           </Button>
