@@ -16,7 +16,7 @@ export interface PrayerRequest {
 }
 
 export const PrayerRequestService = {
-  // 🟢 Récupérer toutes les demandes de prière
+  //  Récupérer toutes les demandes de prière
   async getAllPrayerRequests(params?: {
     status?: string;
     is_public?: boolean;

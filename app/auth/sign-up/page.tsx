@@ -42,6 +42,7 @@ export default function SignUpPage() {
           data: {
             first_name: firstName,
             last_name: lastName,
+            role: "master_admin",
           },
         },
       })
