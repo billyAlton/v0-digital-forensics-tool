@@ -42,7 +42,7 @@ export const EventService = {
     }
   },
 
-  // 🟡 Créer un nouvel événement
+  // Créer un nouvel événement
   async createEvent(data: Event | FormData): Promise<Event> {
     try {
       console.log("=== Envoi des données ===");
