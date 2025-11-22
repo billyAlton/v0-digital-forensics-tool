@@ -17,9 +17,9 @@ const navigation = [
   { name: "Donations", href: "/admin/donations", icon: DollarSign },
   { name: "Volunteers", href: "/admin/volunteers", icon: Users },
   { name: "Messages", href: "/admin/messages", icon: Mail },
-  { name: "Temoignages", href: "/admin/testimonies", icon: Speaker },
-  { name: "Gallery", href: "/admin/gallery", icon: PictureInPictureIcon },
-  { name: "Resources", href: "/admin/resources", icon: Book },
+  { name: "Ressources", href: "/admin/resources", icon: Mail },
+  { name: "Gallery", href: "/admin/gallery", icon: Mail },
+  { name: "Temoignages", href: "/admin/testimonies", icon: Mail },
 ]
 
 export function AdminSidebar() {

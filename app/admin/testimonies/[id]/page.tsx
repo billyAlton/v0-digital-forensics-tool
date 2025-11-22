@@ -328,12 +328,16 @@ export default function TestimonyDetailPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Contenu du témoignage */}
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-3">Témoignage</h3>
-                <blockquote className="text-gray-700 text-lg leading-relaxed italic border-l-4 border-primary pl-4 py-2 bg-gray-50 rounded-r">
-                  {testimony.content}
-                </blockquote>
-              </div>
+<div>
+  <h3 className="font-semibold text-gray-900 mb-3">Témoignage</h3>
+  <div className="relative h-64">
+    <div className="absolute inset-0 overflow-y-auto rounded-lg border bg-gray-50 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+      <blockquote className="text-gray-700 text-base leading-relaxed italic p-4 whitespace-pre-wrap break-words">
+        {testimony.content}
+      </blockquote>
+    </div>
+  </div>
+</div>
 
               {/* Images */}
               {testimony.images && testimony.images.length > 0 && (
