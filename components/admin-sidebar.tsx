@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Calendar, Mic, FileText, Heart, DollarSign, Users, Mail, LogOut } from "lucide-react"
+import { LayoutDashboard, Calendar, Mic, FileText, Heart, DollarSign, Users, Mail, LogOut, Speaker , PictureInPictureIcon , Book } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
@@ -17,6 +17,9 @@ const navigation = [
   { name: "Donations", href: "/admin/donations", icon: DollarSign },
   { name: "Volunteers", href: "/admin/volunteers", icon: Users },
   { name: "Messages", href: "/admin/messages", icon: Mail },
+  { name: "Temoignages", href: "/admin/testimonies", icon: Speaker },
+  { name: "Gallery", href: "/admin/gallery", icon: PictureInPictureIcon },
+  { name: "Resources", href: "/admin/resources", icon: Book },
 ]
 
 export function AdminSidebar() {
