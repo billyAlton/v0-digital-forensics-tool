@@ -200,12 +200,12 @@ export default function ProjectsPage() {
         </div>
         <div className="flex gap-2">
           <Button asChild variant="outline">
-            <Link href="/admin/projects/stats">
+            <Link href="/admin/projets/stats">
               Statistiques
             </Link>
           </Button>
           <Button asChild>
-            <Link href="/admin/projects/new">
+            <Link href="/admin/projets/new">
               <Plus className="mr-2 h-4 w-4" />
               Nouveau Projet
             </Link>
@@ -336,7 +336,7 @@ export default function ProjectsPage() {
               Commencez par créer votre premier projet
             </p>
             <Button asChild>
-              <Link href="/admin/projects/new">
+              <Link href="/admin/projets/new">
                 <Plus className="mr-2 h-4 w-4" />
                 Créer un projet
               </Link>

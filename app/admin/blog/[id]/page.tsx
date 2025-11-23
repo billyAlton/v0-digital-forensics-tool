@@ -203,10 +203,8 @@ export default function BlogPostDetailPage() {
                   </p>
                 </div>
               )}
-              <div className="prose max-w-none">
-                <div className="text-gray-700 whitespace-pre-wrap leading-relaxed">
-                  {post.content}
-                </div>
+              <div className="text-gray-700 whitespace-pre-wrap leading-relaxed max-h-[400px] overflow-y-auto p-4 border rounded w-full scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+                {post.content}
               </div>
             </CardContent>
           </Card>
